@@ -1,17 +1,17 @@
 ################
 #Librerie
-library(ggplot2) 
-library(readr) 
-library(Hmisc) 
-library(plyr) 
-library(corrplot) 
-library(rpart)
-library(rpart.plot)
-library(rpart.utils)
+library(ggplot2) #per i grafici
+library(readr) #per la lettura di file .csv
+library(Hmisc) # per grafici e integrazione Latex
+library(plyr) # per manipolazione dati
+library(corrplot) #grafico correlazione
+library(rpart) #alberi ricorsivi
+library(rpart.plot) # visualizzazione alberi
+library(rpart.utils) 
 library(randomForest)  
-library(e1071)  
-library(caret)
-library(gbm)
+library(e1071)  #Funzione per classi latenti
+library(caret) # Classification And REgression Training
+library(gbm) #Gradient boosting
 
 ###########Load File#########
 class <- read.csv("C:/Users/chiar/Desktop/Progetto personale zoo/class.csv")
@@ -185,23 +185,28 @@ test <- data[dta == 2,-17]
 
 summary(data[dta == 1,])
 summary(data[dta !=1,])
+
 #######################################################################################
+
+
 ##MODELLI##########
+#creazione formule
 all_var_zoo <- ytrain~hair+feathers+eggs+milk+airborne+aquatic+predator+toothed+backbone+breathes+venomous+fins+legs+tail+domestic+catsize
 var_impo_rf<-ytrain~hair+feathers+eggs+milk+toothed+backbone+fins+legs 
 var_gb<-ytrain~milk+hair+toothed+feathers+legs+eggs+aquatic+predator+catsize
 
 #####RPART: CART#####
-#gini
+#Parametri di controllo
 a=rpart.control(minsplit = 20, cp = 0.001,
               maxcompete = 4, maxsurrogate = 5, usesurrogate = 2, xval = 10,
               surrogatestyle = 0, maxdepth = 30)
 
+#Costruzione CART
 CARTg=rpart(all_var_zoo, data=train, method="class", control = a)
 
 
-#info
-CARTi=rpart(all_var_zoo, data=train, method="class", control=a,parms = list( split = "information") )
+#CART splittato per Error rate
+CARTi=rpart(all_var_zoo, data=train, method="class", control=a, parms = list( split = "information") )
 
 #plot
 dev.new()
@@ -217,45 +222,52 @@ cpredg=predict(CARTg,test, type="class")
 
 cpredi=predict(CARTi,test, type="class")
 
+#Confusion Matrix
 table(cpredg, ytest)
 table(cpredi, ytest)
 
-#####RANDOM FOREST#####
+#####RANDOM FOREST#########
 set.seed(123)
 
+#creazione albero
 rf = randomForest(all_var_zoo,  data=train,
                   ntree = 150)
 dev.new()
 plot(rf, main="Random Forest") 
 
-#predict
+#predict#######
 predf=predict(rf, test, type="class")
 table(predf, ytest)
 
-# Variable Importance
+# Classificazione delle covariate per importanza
 varImpPlot(rf,  
            sort = T,
            n.var=8,
            main="Top 8- Variable Importance")
 
+#Random Forest con le sole variabili importanti
 rfvi = randomForest(var_impo_rf,  data=train,
                   ntree = 150)
+
+#Plot
 dev.new()
 plot(rf, main="Random Forest con variabili principali")  
 
-#predict
+#predict#####
 predfvi=predict(rfvi, test, type="class")
 table(predfvi, ytest)
 
-#####Stochastic gradient boosting#####
+#####Stochastic gradient boosting######################
 set.seed(124)
+
+#Preparazione dati
 train1=cbind.data.frame(ytrain, train)
 test1=cbind.data.frame(ytest, test)
 
-# prepare training scheme
+# Schema per la Cross-Validation
 control <- trainControl(method = "repeatedcv", number = 5, repeats = 5)
 
-# train the model
+# Lancio modello
 set.seed(27)
 caret_gbm_all <- caret::train(all_var_zoo,
                               data = train1,
@@ -263,17 +275,17 @@ caret_gbm_all <- caret::train(all_var_zoo,
                               preProcess = NULL,
                               verbose = FALSE,
                               trControl = control)
-#Confusion MAtrix
+#Confusion Matrix
 gbm <- confusionMatrix(predict(caret_gbm_all, newdata = test1), test1$ytest)
 
 
-# estimate variable importance
+# Classifica delle variabili per importanza
 importance <- varImp(caret_gbm_all, scale=TRUE)
 importance
 
 plot(caret_gbm_all)
 
-# train the model
+# Lancio modello con solo variabili importanti
 set.seed(27)
 caret_gbm <- caret::train(var_gb,
                               data = train1,
@@ -284,5 +296,5 @@ caret_gbm <- caret::train(var_gb,
 #Confusion MAtrix
 gbm <- confusionMatrix(predict(caret_gbm_all, newdata = test1), test1$ytest)
 
-
+#Plot
 plot(caret_gbm)
