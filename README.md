@@ -1,2 +1,4 @@
-# Animals-and-Trees
-Animal Classification using tree methods
+# Animals and Trees
+Language: Italian
+
+Clasiffication trees application to animal classification
