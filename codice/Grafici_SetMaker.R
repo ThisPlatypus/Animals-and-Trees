@@ -1,16 +1,16 @@
-#Importo i dati
+#Importazione dati
 class <- read.csv("C:/Users/chiar/Desktop/Progetto personale zoo/class.csv")
 
 zoo <- read.csv("C:/Users/chiar/Desktop/Progetto personale zoo/zoo.csv")
 
 ################
-#Librerie
-library(ggplot2) #data visualization
-library(readr) #to read csv files
-library(Hmisc) # descriptive statistics
-library(gridExtra) #to display plots in grids
+# Import librerie
+library(ggplot2) # visualizzazione dati
+library(readr) # lettura file .csv
+library(Hmisc) # Statistiche descrittive
+library(gridExtra) # Griglia per visualizzazione
 library(plyr) # data manipulation
-library(corrplot)
+library(corrplot) # grafico correlazioni
 
 ################
 #Merge
@@ -18,7 +18,7 @@ class = rename(class , c("Class_Number"="class_type" , "Class_Type" = "Types"))
 zoo = merge (zoo , class , by = c("class_type")  )
 
 ################
-#Descrittive
+# Grafici per Statistiche Descrittive
 dev.new()
 par(mfrow = c(1,2))
 grid.arrange()
@@ -31,11 +31,11 @@ p <- p + facet_wrap( ~ Types, ncol=7)
 p +   scale_x_continuous(breaks = zoo$hair)
 
 #feathers
-p <- ggplot(zoo, aes(x=feathers , fill = Types)) 
-p <- p + geom_histogram(binwidth = 0.5)
-p <- p + scale_fill_brewer(palette="Set3")
-p <- p + facet_wrap( ~ Types, ncol=7)
-p +   scale_x_continuous(breaks = zoo$feathers)
+p <- ggplot(zoo, aes(x=feathers , fill = Types)) # creazione grafico
+p <- p + geom_histogram(binwidth = 0.5) #aggiunta istogramma
+p <- p + scale_fill_brewer(palette="Set3") #definizione colori
+p <- p + facet_wrap( ~ Types, ncol=7) #differenzazione per tipologia
+p +   scale_x_continuous(breaks = zoo$feathers) #stampa grafico con dati adeguati
 
 #eggs
 p <- ggplot(zoo, aes(x=eggs , fill = Types)) 
@@ -152,15 +152,16 @@ p <- p + scale_fill_brewer(palette="Set3")
 p <- p + facet_wrap( ~ Types, ncol=7)
 p +   scale_x_continuous(breaks = zoo$catsize)
 
-#Correlazione
+#Grafici Correlazione
 corrplot(cor(zoo[,c("hair" , "feathers" , "eggs" , "milk" , "airborne" , "aquatic" , "predator" , "toothed" , "backbone" , "breathes" , "venomous" , "fins" ,  "tail" , "domestic" , "catsize" )]), type = "upper", method="ellipse",order = "hclust",
          col = c("lightblue", "lightgreen"), bg = "lightyellow")
 
 
 corrplot(cor(zoo[,c("hair" , "feathers" , "eggs" , "milk" , "airborne" , "aquatic" , "predator" , "toothed" , "backbone" , "breathes" , "venomous" , "fins" ,  "tail" , "domestic" , "catsize" )]), type = "upper", method="number",order = "hclust",
          col = c("darkblue", "darkgreen"), bg = "lightyellow")
+
 ################
-#Train e test set
+# Creazione dei Dataset di Train e test
 
 class <- read.csv("C:/Users/chiar/Desktop/Progetto personale zoo/class.csv")
 
